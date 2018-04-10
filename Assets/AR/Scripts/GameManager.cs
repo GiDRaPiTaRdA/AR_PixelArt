@@ -1,4 +1,5 @@
-﻿using AR;
+﻿using System;
+using AR;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,13 @@ public class GameManager : MonoBehaviour {
         Debug.Log($"Unity {message}");
     }
 
+    public void TogglePlanes(Boolean value)
+    {
+        ARController controller = GameObject.FindObjectOfType<ARController>();
+
+        controller.PlanesSearch = value;
+        controller.planes.ForEach(p=>p.SetActive(value));
+    }
 
     public void AddBlock()
     {

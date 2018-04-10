@@ -19,6 +19,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using InstantPreviewInput = GoogleARCore.InstantPreviewInput;
 
 namespace AR
@@ -86,16 +87,16 @@ namespace AR
 
         #endregion
 
+        public bool NotTraking => this.m_AllPlanes.ToList().All(p => p.TrackingState != TrackingState.Tracking);
+        public bool PlanesSearch { get; set; } = true;
+
+        public List<GameObject> planes = new List<GameObject>();
+
         /// <summary>
         /// The Unity Update() method.
         /// </summary>
         public void Update()
         {
-            if (Input.GetKey(KeyCode.Escape))
-            {
-                Application.Quit();
-            }
-
             this._QuitOnConnectionErrors();
 
             // Check that motion tracking is tracking.
@@ -105,103 +106,38 @@ namespace AR
                 Screen.sleepTimeout = lostTrackingSleepTimeout;
                 if (!this.m_IsQuitting && Session.Status.IsValid())
                 {
-                    this.SearchingForPlaneUI.SetActive(true);
+                    this.SearchingForPlaneUI.SetActive(this.PlanesSearch);
                 }
 
                 return;
             }
 
+            // Screen actiive
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
-            // Iterate over planes found in this frame and instantiate corresponding GameObjects to visualize them.
+            // Update new planes
             Session.GetTrackables<TrackedPlane>(this.m_NewPlanes, TrackableQueryFilter.New);
 
-            for (int i = 0; i < this.m_NewPlanes.Count; i++)
-            {
-                // Instantiate a plane visualization prefab and set it to track the new plane. The transform is set to
-                // the origin with an identity rotation since the mesh for our prefab is updated in Unity World
-                // coordinates.
-
-                GameObject planeObject = Instantiate(this.TrackedPlanePrefab, Vector3.zero, Quaternion.identity, this.transform);
-                planeObject.GetComponent<TrackedPlaneVisualizer>().Initialize(this.m_NewPlanes[i]);
-
-
-            }
-
-            // Disable the snackbar UI when no planes are valid.
+            // Update traked planes
             Session.GetTrackables<TrackedPlane>(this.m_AllPlanes);
-            bool showSearchingUI = true;
-            for (int i = 0; i < this.m_AllPlanes.Count; i++)
+
+            if (this.PlanesSearch)
             {
-                if (this.m_AllPlanes[i].TrackingState == TrackingState.Tracking)
+                // Iterate over planes found in this frame and instantiate corresponding GameObjects to visualize them.
+                for (int i = 0; i < this.m_NewPlanes.Count; i++)
                 {
-                    showSearchingUI = false;
-                    break;
+                    GameObject planeObject = Instantiate(this.TrackedPlanePrefab, Vector3.zero, Quaternion.identity,
+                        this.transform);
+                    this.planes.Add(planeObject);
+                    planeObject.GetComponent<TrackedPlaneVisualizer>().Initialize(this.m_NewPlanes[i]);
                 }
             }
 
-            this.SearchingForPlaneUI.SetActive(showSearchingUI);
+
+            this.SearchingForPlaneUI.SetActive(this.NotTraking);
         }
 
-        //private void TEst()
-        //{
-            
-        //    // If the player has not touched the screen, we are done with this update.
-
-        //    Touch touch = Input.GetTouch(0);
-
-        //    if (Input.touchCount < 1 ||
-        //        (touch.phase != TouchPhase.Began &&
-        //        touch.phase != TouchPhase.Moved &&
-        //        touch.phase != TouchPhase.Stationary))
-        //    {
-        //        return;
-        //    }
-
-        //    // Raycast against the location the player touched to search for planes.
-        //    TrackableHit hit;
-        //    TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon |
-        //                                      TrackableHitFlags.FeaturePointWithSurfaceNormal |
-        //                                      TrackableHitFlags.FeaturePoint |
-        //                                      TrackableHitFlags.PlaneWithinPolygon |
-        //                                      TrackableHitFlags.None |
-        //                                      TrackableHitFlags.PlaneWithinInfinity;
-
-            
-        //    // TODO SOME WHERE HERE BUGGG WAS SEEN
-        //    if (Frame.Raycast(touch.position.x, touch.position.y,raycastFilter , out hit))
-        //    {
-
-        //        RaycastHit hHit;
-        //        Ray ray = Camera.current.ScreenPointToRay(touch.position);
-
-
-        //        bool var = Physics.Raycast(ray, out hHit, 1000.0f);
-
-        //        Vector3 pos;
-
-        //        if (var)
-        //        {
-        //            pos = hHit.point + hHit.normal* this.AndyAndroidPrefab.transform.localScale.y / 2;
-        //        }
-        //        else
-        //        {
-        //            pos = new Vector3(hit.Pose.position.x, hit.Pose.position.y+ this.AndyAndroidPrefab.transform.localScale.y/2, hit.Pose.position.z);
-        //        }
-
-        //        pos /= this.AndyAndroidPrefab.transform.localScale.y;
-
-        //        pos.x = (float)Math.Round(pos.x, MidpointRounding.AwayFromZero);
-        //        pos.y = (float)Math.Round(pos.y, MidpointRounding.AwayFromZero);
-        //        pos.z = (float)Math.Round(pos.z, MidpointRounding.AwayFromZero);
-
-        //        pos *= this.AndyAndroidPrefab.transform.localScale.y;
-
-        //        Instantiate(this.AndyAndroidPrefab, pos, Quaternion.identity);
-        //    }
-        //}
-
-        
+   
         public void AddBlockFunc()
         {          
             // get position of center of the sreen
@@ -259,76 +195,6 @@ namespace AR
             }
         }
 
-        //private void TEst3()
-        //{
-            
-        //    // If the player has not touched the screen, we are done with this update.
-        //    Touch touch;
-
-        //    try
-        //    {
-        //        touch = Input.GetTouch(0);
-        //    }
-        //    catch (ArgumentException) {return;}
-        //    catch (IndexOutOfRangeException) {return;}
-
-        //    if (Input.touchCount < 1 ||touch.phase != TouchPhase.Began)
-        //    {
-        //        return;
-        //    }
-
-        //    // Raycast against the location the player touched to search for planes.
-
-        //    TrackableHitFlags raycastFilter = TrackableHitFlags.PlaneWithinPolygon |
-        //                                      TrackableHitFlags.FeaturePointWithSurfaceNormal |
-        //                                      TrackableHitFlags.FeaturePoint |
-        //                                      TrackableHitFlags.PlaneWithinPolygon |
-        //                                      TrackableHitFlags.None |
-        //                                      TrackableHitFlags.PlaneWithinInfinity;
-
-
-
-        //    // get position of center of the sreen
-        //    var cameraPos = Camera.current.transform.position;
-        //    cameraPos.x += Screen.width / 2;
-        //    cameraPos.y += Screen.height / 2;
-
-        //    Vector3 pos =Vector3.zero;
-
-        //    // Physics //////////////////////////////////////////
-        //    TrackableHit hit;
-        //    RaycastHit hHit;
-        //    Ray ray = Camera.current.ScreenPointToRay(cameraPos);
-
-        //    if (Physics.Raycast(ray, out hHit, 1000.0f))
-        //    {
-        //        pos = hHit.point + hHit.normal* this.AndyAndroidPrefab.transform.localScale.y / 2;
-
-        //        Debug.Log("Unity My");
-        //    }
-        //    /////////////////////////////////////////////////////
-
-        //    // ARCore ///////////////////////////////////////////
-
-        //    else if (Frame.Raycast(cameraPos.x, cameraPos.y,raycastFilter , out hit))
-        //    {
-        //        pos = new Vector3(hit.Pose.position.x, hit.Pose.position.y+ this.AndyAndroidPrefab.transform.localScale.y/2, hit.Pose.position.z);
-
-        //        Debug.Log("Unity ACore");
-        //    }
-        //    /////////////////////////////////////////////////////
-
-        //    // Spawn cube
-        //    if (pos != Vector3.zero)
-        //    {
-        //        var cube = this.SpawnCube(pos);
-
-        //        //var anchor = hit.Trackable.CreateAnchor(hit.Pose);
-
-        //        //// Make Andy model a child of the anchor.
-        //        //cube.transform.parent = anchor.transform;
-        //    }
-        //}
 
         private Vector3 RoundPosition(Vector3 pos)
         {
