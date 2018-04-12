@@ -38,6 +38,7 @@ namespace AR
         #region Constants
 
         private float hitLength = 1000f;
+        private static float initialShift = 0;
         #endregion
 
         #region Variables
@@ -54,7 +55,7 @@ namespace AR
         /// <summary>
         /// A model to place when a raycast from a user touch hits a plane.
         /// </summary>
-        public GameObject AndyAndroidPrefab;
+        public GameObject CubePrefab;
 
         /// <summary>
         /// A gameobject parenting UI for displaying the "searching for planes" snackbar.
@@ -141,7 +142,7 @@ namespace AR
         public void AddBlockFunc()
         {          
             // get position of center of the sreen
-            var cameraPos = this.GetCenterOfScreenPosition();
+            var cameraPos = GameManager.GetCenterOfScreenPosition();
 
             Vector3 pos =Vector3.zero;
 
@@ -152,9 +153,7 @@ namespace AR
 
             if (Physics.Raycast(ray, out hHit, this.hitLength))
             {
-                pos = hHit.point + hHit.normal* this.AndyAndroidPrefab.transform.localScale.y / 2;
-
-                Debug.Log("Unity My");
+                pos = hHit.point + hHit.normal* this.CubePrefab.transform.localScale.y / 2;
             }
             /////////////////////////////////////////////////////
 
@@ -162,16 +161,15 @@ namespace AR
 
             else if (Frame.Raycast(cameraPos.x, cameraPos.y,raycastFilter , out hit))
             {
-                pos = new Vector3(hit.Pose.position.x, hit.Pose.position.y+ this.AndyAndroidPrefab.transform.localScale.y/2, hit.Pose.position.z);
-
-                Debug.Log("Unity ACore");
+                pos = new Vector3(hit.Pose.position.x, hit.Pose.position.y+ this.CubePrefab.transform.localScale.y/2, hit.Pose.position.z);
             }
             /////////////////////////////////////////////////////
 
             // Spawn cube
             if (pos != Vector3.zero)
             {
-                GameManager.InitiateBlockObject(this.AndyAndroidPrefab,this.RoundPosition(pos));
+                var cube = GameManager.InitiateBlockObject(this.CubePrefab,this.RoundPosition(pos));
+                cube.GetComponent<MeshRenderer>().material.color = CubeColorBehaviour.CubeColor;
             }
         }
 
@@ -181,11 +179,11 @@ namespace AR
 
             // Physics //////////////////////////////////////////
             RaycastHit hHit;
-            Ray ray = Camera.current.ScreenPointToRay(this.GetCenterOfScreenPosition());
+            Ray ray = Camera.current.ScreenPointToRay(GameManager.GetCenterOfScreenPosition());
 
             if (Physics.Raycast(ray, out hHit, this.hitLength))
             {
-                pos = hHit.point - hHit.normal* this.AndyAndroidPrefab.transform.localScale.y / 2;
+                pos = hHit.point - hHit.normal* this.CubePrefab.transform.localScale.y / 2;
             }
 
             // Remove cube
@@ -198,29 +196,35 @@ namespace AR
 
         private Vector3 RoundPosition(Vector3 pos)
         {
-            pos /= this.AndyAndroidPrefab.transform.localScale.y;
+            pos /= this.CubePrefab.transform.localScale.y;
+
+            if (initialShift == 0)
+            {
+                initialShift = pos.y - (float) Math.Round(pos.y, MidpointRounding.AwayFromZero);
+            }
 
             pos.x = (float)Math.Round(pos.x, MidpointRounding.AwayFromZero);
-            pos.y = (float)Math.Round(pos.y, MidpointRounding.AwayFromZero);
+            pos.y = (float)Math.Round(pos.y, MidpointRounding.AwayFromZero) + initialShift;
             pos.z = (float)Math.Round(pos.z, MidpointRounding.AwayFromZero);
 
-            pos *= this.AndyAndroidPrefab.transform.localScale.y;
+            pos *= this.CubePrefab.transform.localScale.y;
 
             return pos;
         }
 
-        #region Help
-
-        private Vector3 GetCenterOfScreenPosition()
+        
+        private Vector3 RoundPosition1(Vector3 pos)
         {
-            var cameraPos = Camera.current.transform.position;
-            cameraPos.x += Screen.width / 2;
-            cameraPos.y += Screen.height / 2;
+            pos /= this.CubePrefab.transform.localScale.y;
 
-            return cameraPos;
+            pos.x = (float)Math.Round(pos.x, MidpointRounding.AwayFromZero);
+            pos.y = (float) Math.Round(pos.y, MidpointRounding.AwayFromZero);
+            pos.z = (float)Math.Round(pos.z, MidpointRounding.AwayFromZero);
+
+            pos *= this.CubePrefab.transform.localScale.y;
+
+            return pos;
         }
-
-        #endregion
 
         #region Other
 

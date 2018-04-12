@@ -14,10 +14,15 @@ public class GameManager : MonoBehaviour {
 
     public void TogglePlanes(Boolean value)
     {
+
+
         ARController controller = GameObject.FindObjectOfType<ARController>();
+        controller.planes.ForEach(p=>p.SetActive(value));
+
+        PointcloudVisualizer pointCloud = GameObject.FindObjectOfType<PointcloudVisualizer>();
+        pointCloud.gameObject.SetActive(value);
 
         controller.PlanesSearch = value;
-        controller.planes.ForEach(p=>p.SetActive(value));
     }
 
     public void AddBlock()
@@ -29,6 +34,7 @@ public class GameManager : MonoBehaviour {
     {
         FindObjectOfType<ARController>().RemoveBlockFunc();
     }
+
 
     public void Reset()
     {
@@ -53,6 +59,15 @@ public class GameManager : MonoBehaviour {
         }
 
         return gameObj;
+    }
+
+    public static Vector3 GetCenterOfScreenPosition()
+    {
+        var cameraPos = Camera.current.transform.position;
+        cameraPos.x += Screen.width / 2;
+        cameraPos.y += Screen.height / 2;
+
+        return cameraPos;
     }
 
     public static void DestroyBlockObject(Vector3 origin)
