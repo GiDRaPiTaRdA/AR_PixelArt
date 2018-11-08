@@ -31,7 +31,7 @@ namespace GoogleARCore
     /// ARCore, manages tracking of Anchors and Planes, and performs hit tests
     /// against objects ARCore is tracking in the world.
     /// </summary>
-    public static class Session
+    public static class  Session
     {
         /// <summary>
         /// Gets current session status.
@@ -41,6 +41,14 @@ namespace GoogleARCore
             get
             {
                 return LifecycleManager.Instance.SessionStatus;
+            }
+        }
+
+        public static LifecycleManager LifecycleManagerInstance
+        {
+            get
+            {
+                return LifecycleManager.Instance;
             }
         }
 

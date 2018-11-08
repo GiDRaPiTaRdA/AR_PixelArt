@@ -89,9 +89,19 @@ namespace AR
         #endregion
 
         public bool NotTraking => this.m_AllPlanes.ToList().All(p => p.TrackingState != TrackingState.Tracking);
-        public bool PlanesSearch { get; set; } = true;
+
+        public bool PlanesSearch
+        {
+            get { return this.planesSearch; }
+            set
+            {
+                this.planesSearch = value;
+                this.SearchingForPlaneUI.SetActive(this.planesSearch);
+            }
+        }
 
         public List<GameObject> planes = new List<GameObject>();
+        private bool planesSearch = true;
 
         /// <summary>
         /// The Unity Update() method.

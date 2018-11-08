@@ -2,6 +2,7 @@
 using AR;
 using System.Collections;
 using System.Collections.Generic;
+using GoogleARCore;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,8 +15,6 @@ public class GameManager : MonoBehaviour {
 
     public void TogglePlanes(Boolean value)
     {
-
-
         ARController controller = GameObject.FindObjectOfType<ARController>();
         controller.planes.ForEach(p=>p.SetActive(value));
 
@@ -38,7 +37,10 @@ public class GameManager : MonoBehaviour {
 
     public void Reset()
     {
+       //Session Blocks.Clear();
+        Session.LifecycleManagerInstance.DisableSession();
         SceneManager.LoadScene(0);
+        //Session.LifecycleManagerInstance.CreateSession();
     }
 
 
